@@ -128,8 +128,6 @@ func (w *watcher) touch(s string) {
 		return
 	}
 
-	fmt.Printf("TOUCH %s %s\n", w.Name, s)
-
 	if w.timer != nil {
 		w.timer.Stop()
 		w.timer = nil
@@ -143,8 +141,6 @@ func (w *watcher) touch(s string) {
 
 func (w *watcher) run() {
 	w.setup()
-
-	fmt.Printf("START %s\n", w.Name)
 
 	for range w.ch {
 		fmt.Printf("RUN %s %q\n", w.Name, w.Command)
@@ -161,9 +157,11 @@ func (w *watcher) run() {
 		w.cmd.Stderr = textio.NewPrefixWriter(os.Stderr, "["+w.Name+"] ")
 		w.cmd.Start()
 	}
-
-	fmt.Printf("DONE %s\n", w.Name)
 }
+
+var (
+	verbose = flag.Bool("verbose", false, "Log more information")
+)
 
 func main() {
 	flag.Parse()
@@ -205,7 +203,9 @@ outer:
 			}
 		}
 
-		fmt.Printf("ADD %s\n", dir)
+		if *verbose {
+			fmt.Printf("ADD %s\n", dir)
+		}
 
 		if err := watcher.Add(dir); err != nil {
 			panic(err)
@@ -235,7 +235,9 @@ outer:
 
 	for ev := range watcher.Events {
 		name := strings.TrimLeft(ev.Name, "./")
-		fmt.Printf("%s %s\n", ev.Op, name)
+		if *verbose {
+			fmt.Printf("%s %s\n", ev.Op, name)
+		}
 		for i := range c.Watchers {
 			w := c.Watchers[i]
 			w.touch(name)

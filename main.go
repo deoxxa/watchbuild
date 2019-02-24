@@ -146,8 +146,31 @@ func (w *watcher) run() {
 		fmt.Printf("RUN %s %q\n", w.Name, w.Command)
 
 		if w.cmd != nil {
-			w.cmd.Process.Kill()
-			w.cmd.Wait()
+			pgid, err := syscall.Getpgid(w.cmd.Process.Pid)
+			if err != nil {
+				fmt.Printf("[%s] couldn't get pgid for process %d: %s\n", w.Name, w.cmd.Process.Pid, err.Error())
+			}
+
+			done := make(chan error, 1)
+
+			go func() { done <- w.cmd.Wait() }()
+
+			if err := syscall.Kill(-pgid, syscall.SIGTERM); err != nil {
+				fmt.Printf("[%s] couldn't send SIGTERM to process %d: %s\n", w.Name, w.cmd.Process.Pid, err.Error())
+			}
+
+			select {
+			case <-time.After(3 * time.Second):
+				if err := syscall.Kill(-pgid, syscall.SIGKILL); err != nil {
+					fmt.Printf("[%s] couldn't send SIGKILL to process %d: %s\n", w.Name, w.cmd.Process.Pid, err.Error())
+				}
+			case err := <-done:
+				if err != nil {
+					fmt.Printf("[%s] process finished with error: %s\n", w.Name, err.Error())
+				} else {
+					fmt.Printf("[%s] process finished successfully\n", w.Name)
+				}
+			}
 		}
 
 		w.cmd = exec.Command("sh", []string{"-c", w.Command}...)

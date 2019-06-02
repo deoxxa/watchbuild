@@ -56,12 +56,13 @@ func (c *config) setup() {
 }
 
 type watcher struct {
-	Name     string        `yaml:"name"`
-	Command  string        `yaml:"command"`
-	Include  []string      `yaml:"include"`
-	Exclude  []string      `yaml:"exclude"`
-	Wait     time.Duration `yaml:"wait"`
-	Debounce time.Duration `yaml:"debounce"`
+	Name            string        `yaml:"name"`
+	Command         string        `yaml:"command"`
+	Include         []string      `yaml:"include"`
+	Exclude         []string      `yaml:"exclude"`
+	Wait            time.Duration `yaml:"wait"`
+	Debounce        time.Duration `yaml:"debounce"`
+	HoldUntilChange bool          `yaml:"hold_until_change"`
 
 	m       sync.RWMutex
 	cmd     *exec.Cmd
@@ -98,7 +99,9 @@ func (w *watcher) setup() {
 	}
 
 	w.ch = make(chan struct{}, 1)
-	w.ch <- struct{}{}
+	if !w.HoldUntilChange {
+		w.ch <- struct{}{}
+	}
 
 	w.ready = true
 }

@@ -4,7 +4,6 @@ import (
 	"flag"
 	"fmt"
 	"io/ioutil"
-	"math/rand"
 	"os"
 	"os/exec"
 	"os/signal"
@@ -191,8 +190,6 @@ var (
 
 func main() {
 	flag.Parse()
-
-	rand.Seed(time.Now().UnixNano())
 
 	d, err := ioutil.ReadFile("reloader.yml")
 	if err != nil {

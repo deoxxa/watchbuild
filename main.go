@@ -186,16 +186,18 @@ func (w *watcher) run() {
 
 var (
 	flagVerbose bool
+	flagConfig  string
 )
 
 func init() {
 	flag.BoolVar(&flagVerbose, "verbose", false, "Log information about filesystem events.")
+	flag.StringVar(&flagConfig, "config", "reloader.yml", "File to load configuration from.")
 }
 
 func main() {
 	flag.Parse()
 
-	d, err := ioutil.ReadFile("reloader.yml")
+	d, err := ioutil.ReadFile(flagConfig)
 	if err != nil {
 		panic(err)
 	}

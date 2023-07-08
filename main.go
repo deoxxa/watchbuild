@@ -185,8 +185,12 @@ func (w *watcher) run() {
 }
 
 var (
-	verbose = flag.Bool("verbose", false, "Log more information")
+	flagVerbose bool
 )
+
+func init() {
+	flag.BoolVar(&flagVerbose, "verbose", false, "Log information about filesystem events.")
+}
 
 func main() {
 	flag.Parse()
@@ -226,7 +230,7 @@ outer:
 			}
 		}
 
-		if *verbose {
+		if flagVerbose {
 			fmt.Printf("ADD %s\n", dir)
 		}
 
@@ -258,7 +262,7 @@ outer:
 
 	for ev := range watcher.Events {
 		name := strings.TrimLeft(ev.Name, "./")
-		if *verbose {
+		if flagVerbose {
 			fmt.Printf("%s %s\n", ev.Op, name)
 		}
 		for i := range c.Watchers {
